@@ -39,6 +39,7 @@ OPTIONS_UNITTESTS = ['--unittests=on', '--jerry-cmdline=off', '--error-messages=
                      '--line-info=on', '--mem-stats=on']
 OPTIONS_DOCTESTS = ['--doctests=on', '--jerry-cmdline=off', '--error-messages=on',
                     '--snapshot-save=on', '--snapshot-exec=on', '--vm-exec-stop=on']
+TEST_FAIL_COLLECTION = "./test_fail_collection.log"
 
 # Test options for unittests
 JERRY_UNITTESTS_OPTIONS = [
@@ -198,6 +199,19 @@ BINARY_CACHE = {}
 
 TERM_NORMAL = '\033[0m'
 TERM_BLUE = '\033[1;34m'
+TERM_GREEN = '\033[1;32m'
+TERM_RED = '\033[1;31m'
+
+def report_test_results():
+    sys.stderr.write('\n%s%s%s\n\n' % (TERM_BLUE, '[SUMMARY]', TERM_NORMAL))
+    if os.path.exists(TEST_FAIL_COLLECTION):
+        sys.stderr.write('%s%s%s\n' % (TERM_RED, 'Failed tests:', TERM_NORMAL))
+        test_log = open(TEST_FAIL_COLLECTION)
+        for current_line in test_log:
+            sys.stderr.write('%s%s%s' % (TERM_RED, current_line, TERM_NORMAL))
+        test_log.close()
+    else:
+        sys.stderr.write('%s%s%s\n' % (TERM_GREEN, 'No failing tests! Good job!', TERM_NORMAL))
 
 def report_command(cmd_type, cmd):
     sys.stderr.write('%s%s%s\n' % (TERM_BLUE, cmd_type, TERM_NORMAL))
@@ -347,6 +361,9 @@ def run_jerry_tests(options):
 
 def run_jerry_test_suite(options):
     ret_build = ret_test = 0
+    if os.path.exists(TEST_FAIL_COLLECTION):
+        os.remove(TEST_FAIL_COLLECTION)
+
     for job, ret_build, test_cmd in iterate_test_runner_jobs(JERRY_TEST_SUITE_OPTIONS, options):
         if ret_build:
             break
@@ -369,6 +386,7 @@ def run_jerry_test_suite(options):
 
         ret_test |= run_check(test_cmd)
 
+    report_test_results()
     return ret_build | ret_test
 
 def run_test262_test_suite(options):

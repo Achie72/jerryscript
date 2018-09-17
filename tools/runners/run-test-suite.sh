@@ -37,6 +37,8 @@ TEST_FILES=$OUTPUT_DIR/$TESTS_BASENAME.files
 TEST_FAILED=$OUTPUT_DIR/$TESTS_BASENAME.failed
 TEST_PASSED=$OUTPUT_DIR/$TESTS_BASENAME.passed
 
+TEST_FAIL_COLLECTION="./test_fail_collection.log"
+
 TERM_NORMAL="\033[0m"
 TERM_RED="\033[1;31m"
 TERM_GREEN="\033[1;32m"
@@ -185,6 +187,15 @@ do
         echo "============================================" >> $TEST_FAILED
         echo >> $TEST_FAILED
         echo >> $TEST_FAILED
+
+        # Generate fail collection here, for easy handling later.
+        if [ "$IS_SNAPSHOT" == true ]
+        then
+            echo -e "\n${ENGINE#$ROOT_DIR} --snapshot ${ENGINE_ARGS} ${TESTS#$ROOT_DIR}" >> $TEST_FAIL_COLLECTION
+        else
+            echo -e "\n${ENGINE#$ROOT_DIR} ${ENGINE_ARGS} ${TESTS#$ROOT_DIR}" >> $TEST_FAIL_COLLECTION
+        fi
+        echo -e " * $test" >> $TEST_FAIL_COLLECTION
 
         failed=$((failed+1))
     else
